@@ -74,32 +74,34 @@ function show_email(email,mailbox)
   mail.style.display = 'block';
   document.querySelector('#emails-view').style.display = 'none';
   document.querySelector('#compose-view').style.display = 'none';
+  let archive_button = document.querySelector('#archive');
   if (mailbox == 'sent'){
-    document.querySelector('#archive').style.display = 'none';
+    archive_button.style.display = 'none';
+    console.log("You can't archive sent message");
   }
   else
   {
-    document.querySelector('#archive').style.display = 'block';
     if(email.archived == true)
     {
-      document.querySelector('#archive').innerHTML = 'Disarchive';
+      archive_button.innerHTML = 'Disarchive';
     }
     else
     {
-      document.querySelector('#archive').innerHTML = 'Archive';
+      archive_button.innerHTML = 'Archive';
     }
     
-    document.querySelector('#archive').addEventListener('click',function () {
+    archive_button.addEventListener('click',function () {
       if(email.archived == true)
       {
-        
-        disarchive(email);
-        console.log(email.archived);
+        disarchive(email,archive_button);
+        console.log(email.subject);
+        load_mailbox('inbox')
       }
       else
       {
-        archive(email);
-        console.log(email.archived);
+        archive(email,archive_button);
+        console.log(email.subject);
+        load_mailbox('archive')
       }
 
     });
@@ -118,25 +120,25 @@ function show_email(email,mailbox)
 }
 
 //Function to archive
-function archive(email){
+function archive(email,button){
   fetch(`/emails/${email.id}`, {
     method: 'PUT',
     body: JSON.stringify({
         archived: true
     })
   })
-  document.querySelector('#archive').innerHTML = 'Disarchive';
+  button.innerHTML = 'Disarchive';
 }
 
 //Function to disarchive
-function disarchive(email){
+function disarchive(email,button){
   fetch(`/emails/${email.id}`, {
     method: 'PUT',
     body: JSON.stringify({
         archived: false
     })
   })
-  document.querySelector('#archive').innerHTML = 'Archive';
+  button.innerHTML = 'Archive';
 }
 
 
