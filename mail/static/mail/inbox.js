@@ -25,24 +25,7 @@ function compose_email() {
   document.querySelector('#compose-body').value = '';
 }
 
-  function get_emails(email,mailbox){
-    var div = document.createElement("div");
-    document.querySelector('#emails-view').appendChild(div);
-    div.setAttribute('class', 'border'); 
-    //clicking on e-mail will open it
-    div.addEventListener('click', function() {
-      show_email(email,mailbox);
-    });
-    if (email.read == true)
-    {
-      div.style.backgroundColor = 'silver';
-    }
-    else
-    {
-      div.style.backgroundColor = 'white';
-    }
-    div.innerHTML = `Sender: ${email.sender}  Recipients: ${email.recipients} Subject: ${email.subject}  Timestamp: ${email.timestamp} Read: ${email.read}`;
-  }
+ 
 
 function load_mailbox(mailbox) {
   
@@ -67,46 +50,85 @@ function load_mailbox(mailbox) {
   )
 }
 
-//Function to show clicked e-mail
-function show_email(email,mailbox)
-{
-  let mail = document.querySelector('#email');
-  mail.style.display = 'block';
-  document.querySelector('#emails-view').style.display = 'none';
-  document.querySelector('#compose-view').style.display = 'none';
-  let archive_button = document.querySelector('#archive');
+function get_emails(mail,mailbox){
+  var div = document.createElement("div");
+  document.querySelector('#emails-view').appendChild(div);
+  div.setAttribute('class', 'border'); 
+  let archive_button = document.createElement("button");
+  archive_button.setAttribute("id","archive");
+  div.appendChild(archive_button);
+  div.innerHTML += `Sender: ${mail.sender}  Recipients: ${mail.recipients} Subject: ${mail.subject}  Timestamp: ${mail.timestamp} Read: ${mail.read} `;
+  
+  archive_button.style.display = 'none';
   if (mailbox == 'sent'){
     archive_button.style.display = 'none';
     console.log("You can't archive sent message");
   }
   else
   {
-    if(email.archived == true)
+    if(mailbox === "inbox")
     {
-      archive_button.innerHTML = 'Disarchive';
+      archive_button.innerHTML = "Archive";
     }
     else
     {
-      archive_button.innerHTML = 'Archive';
+      archive_button.innerHTML = "Disarchive";
     }
-    
-    archive_button.addEventListener('click',function () {
-      if(email.archived == true)
-      {
-        disarchive(email,archive_button);
-        console.log(email.subject);
-        load_mailbox('inbox')
-      }
-      else
-      {
-        archive(email,archive_button);
-        console.log(email.subject);
-        load_mailbox('archive')
-      }
-
+    archive_button.addEventListener('click', function() {
+      fetch(`/emails/${mail.id}`)
+      .then(response => response.json())
+      .then(email => {
+          // Print email
+          console.log(email);
+      
+          // ... do something else with email ...
+          if(mailbox === "inbox")
+          {
+            archive(archive_button,mailbox);
+            localStorage.clear();
+          }
+          else
+          {
+            disarchive(archive_button,mailbox);
+            localStorage.clear();
+          }
+      });
     });
-
   }
+    
+  
+  //clicking on e-mail will open it
+  div.addEventListener('click', function() {
+    fetch(`/emails/${mail.id}`)
+    .then(response => response.json())
+    .then(email => {
+        // Print email
+        console.log(email);
+    
+        // ... do something else with email ...
+        
+        show_email(email, mailbox);
+    });
+  });
+  if (mail.read == true)
+  {
+    div.style.backgroundColor = 'silver';
+  }
+  else
+  {
+    div.style.backgroundColor = 'white';
+  }
+}
+
+//Function to show clicked e-mail
+function show_email(email)
+{
+
+  const mail = document.querySelector('#email');
+  mail.style.display = 'block';
+  document.querySelector('#emails-view').style.display = 'none';
+  document.querySelector('#compose-view').style.display = 'none';
+  
   document.querySelector('#title').innerHTML = `<h2> Subject: ${email.subject}</h2>`;
   document.querySelector('#sender').innerHTML = `<h3>${email.sender}</h3>`;
   document.querySelector('#body').innerHTML = `${email.body}`;
@@ -157,4 +179,7 @@ function sent_mail(){
       // Print result
       console.log(result);
   })
+  localStorage.clear();
+  load_mailbox('sent');
+  return false;
 }
