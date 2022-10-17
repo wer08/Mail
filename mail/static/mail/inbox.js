@@ -50,31 +50,39 @@ function load_mailbox(mailbox) {
   )
 }
 
+//function to get all the email in mailbox
 function get_emails(mail,mailbox){
+  //Creating a new div for every mail
   var div = document.createElement("div");
+  //adding this div to div containing all the e-mails
   document.querySelector('#emails-view').appendChild(div);
+  //adding class so that we will have a border
   div.setAttribute('class', 'border'); 
+  //creating button to atrchive
   let archive_button = document.createElement("button");
-  archive_button.setAttribute("id","archive");
+  archive_button.setAttribute("class","archive");
+  archive_button.innerHTML = "Archive";
   div.appendChild(archive_button);
   div.innerHTML += `Sender: ${mail.sender}  Recipients: ${mail.recipients} Subject: ${mail.subject}  Timestamp: ${mail.timestamp} Read: ${mail.read} `;
   
-  archive_button.style.display = 'none';
+  
   if (mailbox == 'sent'){
-    archive_button.style.display = 'none';
+    document.querySelectorAll(".archive").style.display = "none";
     console.log("You can't archive sent message");
   }
   else
   {
     if(mailbox === "inbox")
     {
-      archive_button.innerHTML = "Archive";
+      document.querySelector(".archive").innerHTML = "Archive";
+      console.log("testing if archiving is working")
     }
     else
     {
-      archive_button.innerHTML = "Disarchive";
+      document.querySelector(".archive").innerHTML = "Disarchive";
+      console.log("testing if this is working")
     }
-    archive_button.addEventListener('click', function() {
+    document.querySelector(".archive").addEventListener('click', function() {
       fetch(`/emails/${mail.id}`)
       .then(response => response.json())
       .then(email => {
@@ -84,12 +92,14 @@ function get_emails(mail,mailbox){
           // ... do something else with email ...
           if(mailbox === "inbox")
           {
-            archive(archive_button,mailbox);
+            //start archiving function
+            archive(email,archive_button);
             localStorage.clear();
           }
           else
           {
-            disarchive(archive_button,mailbox);
+            //start disarchving function
+            disarchive(email,archive_button);
             localStorage.clear();
           }
       });
