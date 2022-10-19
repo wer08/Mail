@@ -4,4 +4,13 @@ textarea {
 
 .border {
     padding: 10px;
+    position: relative;
+}
+
+.archive{
+    position: absolute;
+    top: 50%;
+    -ms-transform: translateY(-50%);
+    transform: translateY(-50%);
+    right: 2%;
 }

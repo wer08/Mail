@@ -4,7 +4,8 @@ document.addEventListener('DOMContentLoaded', function() {
   document.querySelector('#inbox').addEventListener('click', () => load_mailbox('inbox'));
   document.querySelector('#sent').addEventListener('click', () => load_mailbox('sent'));
   document.querySelector('#archived').addEventListener('click', () => load_mailbox('archive'));
-  document.querySelector('#compose').addEventListener('click', compose_email);
+  document.querySelector('#compose').addEventListener('click', () => compose_email("","",""));
+  
   // By default, load the inbox
   load_mailbox('inbox');
   // Sending e-mail
@@ -13,16 +14,17 @@ document.addEventListener('DOMContentLoaded', function() {
   
 });
 
-function compose_email() {
+function compose_email(recipients, subject, body) {
 
   // Show compose view and hide other views
   document.querySelector('#emails-view').style.display = 'none';
   document.querySelector('#compose-view').style.display = 'block';
+  document.querySelector('#email').style.display = 'none';
 
   // Clear out composition fields
-  document.querySelector('#compose-recipients').value = '';
-  document.querySelector('#compose-subject').value = '';
-  document.querySelector('#compose-body').value = '';
+  document.querySelector('#compose-recipients').value = recipients;
+  document.querySelector('#compose-subject').value = subject;
+  document.querySelector('#compose-body').value = body;
 }
 
  
@@ -60,29 +62,28 @@ function get_emails(mail,mailbox){
   div.setAttribute('class', 'border'); 
   //creating button to atrchive
   let archive_button = document.createElement("button");
-  archive_button.setAttribute("class","archive");
+  archive_button.setAttribute("class",'btn btn-primary btn-sm archive');
+  archive_button.setAttribute("id",`mail${mail.id}`);
   archive_button.innerHTML = "Archive";
-  div.appendChild(archive_button);
-  div.innerHTML += `Sender: ${mail.sender}  Recipients: ${mail.recipients} Subject: ${mail.subject}  Timestamp: ${mail.timestamp} Read: ${mail.read} `;
+  div.append(archive_button);
+  div.innerHTML += `Sender: ${mail.sender}  Recipients: ${mail.recipients} Subject: ${mail.subject}  Timestamp: ${mail.timestamp}`;
   
   
   if (mailbox == 'sent'){
-    document.querySelectorAll(".archive").style.display = "none";
+    document.querySelector(`#mail${mail.id}`).style.display = "none";
     console.log("You can't archive sent message");
   }
   else
   {
     if(mailbox === "inbox")
     {
-      document.querySelector(".archive").innerHTML = "Archive";
-      console.log("testing if archiving is working")
+      document.querySelector(`#mail${mail.id}`).innerHTML = "Archive";
     }
     else
     {
-      document.querySelector(".archive").innerHTML = "Disarchive";
-      console.log("testing if this is working")
+      document.querySelector(`#mail${mail.id}`).innerHTML = "Disarchive";
     }
-    document.querySelector(".archive").addEventListener('click', function() {
+    document.querySelector(`#mail${mail.id}`).addEventListener('click', function() {
       fetch(`/emails/${mail.id}`)
       .then(response => response.json())
       .then(email => {
@@ -90,16 +91,20 @@ function get_emails(mail,mailbox){
           console.log(email);
       
           // ... do something else with email ...
-          if(mailbox === "inbox")
+          if(email.archived === false)
           {
             //start archiving function
-            archive(email,archive_button);
+            archive(email);
+            console.log(`${email.subject}`)
+            console.count(`${email.archived}`)
             localStorage.clear();
           }
           else
           {
             //start disarchving function
-            disarchive(email,archive_button);
+            disarchive(email);
+            console.log(`${email.subject}`)
+            console.count(`${email.archived}`)
             localStorage.clear();
           }
       });
@@ -117,7 +122,7 @@ function get_emails(mail,mailbox){
     
         // ... do something else with email ...
         
-        show_email(email, mailbox);
+        show_email(email);
     });
   });
   if (mail.read == true)
@@ -138,10 +143,10 @@ function show_email(email)
   mail.style.display = 'block';
   document.querySelector('#emails-view').style.display = 'none';
   document.querySelector('#compose-view').style.display = 'none';
-  
   document.querySelector('#title').innerHTML = `<h2> Subject: ${email.subject}</h2>`;
   document.querySelector('#sender').innerHTML = `<h3>${email.sender}</h3>`;
   document.querySelector('#body').innerHTML = `${email.body}`;
+  document.querySelector('#reply').addEventListener('click', () => compose_email(email.sender, `Re: ${email.subject}`, `On ${email.timestamp}  ${email.sender} wrote: ${email.body}`));
   fetch(`/emails/${email.id}`, {
     method: 'PUT',
     body: JSON.stringify({
@@ -152,44 +157,43 @@ function show_email(email)
 }
 
 //Function to archive
-function archive(email,button){
-  fetch(`/emails/${email.id}`, {
+async function archive(email){
+  const response = await fetch(`/emails/${email.id}`, {
     method: 'PUT',
     body: JSON.stringify({
         archived: true
+
     })
   })
-  button.innerHTML = 'Disarchive';
+  load_mailbox("inbox");
 }
 
 //Function to disarchive
-function disarchive(email,button){
-  fetch(`/emails/${email.id}`, {
+async function disarchive(email){
+  const response = await fetch(`/emails/${email.id}`, {
     method: 'PUT',
     body: JSON.stringify({
         archived: false
     })
   })
-  button.innerHTML = 'Archive';
+  load_mailbox("inbox");
 }
 
 
 //Function to send e-mail
-function sent_mail(){
-  fetch('/emails', {
+async function sent_mail(){
+  const response = await fetch('/emails', {
     method: 'POST',
     body: JSON.stringify({
-        recipients: document.querySelector('#compose-recipients').value,
-        subject: document.querySelector('#compose-subject').value,
-        body: document.querySelector('#compose-body').value
+      recipients: document.querySelector('#compose-recipients').value,
+      subject: document.querySelector('#compose-subject').value,
+      body: document.querySelector('#compose-body').value,
+      read: false
     })
-  })
-  .then(response => response.json())
-  .then(result => {
-      // Print result
-      console.log(result);
-  })
+  });
+  const result_1 = await response.json();
+  // Print result
+  console.log(result_1.subject);
   localStorage.clear();
   load_mailbox('sent');
-  return false;
 }
