@@ -55,65 +55,47 @@ function load_mailbox(mailbox) {
 //function to get all the email in mailbox
 function get_emails(mail,mailbox){
   //Creating a new div for every mail
-  var div = document.createElement("div");
+  var mail_div = document.createElement("div");
   //adding this div to div containing all the e-mails
-  document.querySelector('#emails-view').appendChild(div);
+  document.querySelector('#emails-view').appendChild(mail_div);
   //adding class so that we will have a border
-  div.setAttribute('class', 'border'); 
+  mail_div.setAttribute('class', 'border row'); 
+  //setting the text
+  mail_div.innerHTML = `<div class="col-3"><b>${mail.sender}</b></div>  <div class="col-5">${mail.subject}</div>  <div class = "col-3">${mail.timestamp}</div> <div id="for_button${mail.id}" class = "col-1"></div>`;
   //creating button to atrchive
   let archive_button = document.createElement("button");
-  archive_button.setAttribute("class",'btn btn-primary btn-sm archive');
+  //setting attributes to button
+  archive_button.setAttribute("class",'btn btn-secondary btn-sm archive p-1');
+  archive_button.setAttribute("data-bs-toggle",'tooltip');
+  archive_button.setAttribute("data-bs-placement",'top');
   archive_button.setAttribute("id",`mail${mail.id}`);
-  archive_button.innerHTML = "Archive";
-  div.append(archive_button);
-  div.innerHTML += `Sender: ${mail.sender}  Recipients: ${mail.recipients} Subject: ${mail.subject}  Timestamp: ${mail.timestamp}`;
+  archive_button.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-archive" viewBox="0 0 16 16"><path d="M0 2a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1v7.5a2.5 2.5 0 0 1-2.5 2.5h-9A2.5 2.5 0 0 1 1 12.5V5a1 1 0 0 1-1-1V2zm2 3v7.5A1.5 1.5 0 0 0 3.5 14h9a1.5 1.5 0 0 0 1.5-1.5V5H2zm13-3H1v2h14V2zM5 7.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5z"/></svg>';
+  div_for_button = document.querySelector(`#for_button${mail.id}`);
+  div_for_button.append(archive_button);
+  
   
   
   if (mailbox == 'sent'){
     document.querySelector(`#mail${mail.id}`).style.display = "none";
-    console.log("You can't archive sent message");
   }
   else
   {
     if(mailbox === "inbox")
     {
-      document.querySelector(`#mail${mail.id}`).innerHTML = "Archive";
+      document.querySelector(`#mail${mail.id}`).innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-archive" viewBox="0 0 16 16"><path d="M0 2a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1v7.5a2.5 2.5 0 0 1-2.5 2.5h-9A2.5 2.5 0 0 1 1 12.5V5a1 1 0 0 1-1-1V2zm2 3v7.5A1.5 1.5 0 0 0 3.5 14h9a1.5 1.5 0 0 0 1.5-1.5V5H2zm13-3H1v2h14V2zM5 7.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5z"/></svg>';
+      document.querySelector(`#mail${mail.id}`).setAttribute("title","Archive");
     }
     else
     {
-      document.querySelector(`#mail${mail.id}`).innerHTML = "Disarchive";
+      document.querySelector(`#mail${mail.id}`).innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-archive-fill" viewBox="0 0 16 16"><path d="M12.643 15C13.979 15 15 13.845 15 12.5V5H1v7.5C1 13.845 2.021 15 3.357 15h9.286zM5.5 7h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1 0-1zM.8 1a.8.8 0 0 0-.8.8V3a.8.8 0 0 0 .8.8h14.4A.8.8 0 0 0 16 3V1.8a.8.8 0 0 0-.8-.8H.8z"/></svg>';
+      document.querySelector(`#mail${mail.id}`).setAttribute("title","Disarchive");
     }
-    document.querySelector(`#mail${mail.id}`).addEventListener('click', function() {
-      fetch(`/emails/${mail.id}`)
-      .then(response => response.json())
-      .then(email => {
-          // Print email
-          console.log(email);
-      
-          // ... do something else with email ...
-          if(email.archived === false)
-          {
-            //start archiving function
-            archive(email);
-            console.log(`${email.subject}`)
-            console.count(`${email.archived}`)
-            localStorage.clear();
-          }
-          else
-          {
-            //start disarchving function
-            disarchive(email);
-            console.log(`${email.subject}`)
-            console.count(`${email.archived}`)
-            localStorage.clear();
-          }
-      });
-    });
+    document.querySelector(`#mail${mail.id}`).addEventListener('click', () => change_status(mail.id,mail.archived));
   }
     
   
   //clicking on e-mail will open it
-  div.addEventListener('click', function() {
+  mail_div.addEventListener('click', function() {
     fetch(`/emails/${mail.id}`)
     .then(response => response.json())
     .then(email => {
@@ -127,11 +109,11 @@ function get_emails(mail,mailbox){
   });
   if (mail.read == true)
   {
-    div.style.backgroundColor = 'silver';
+    mail_div.style.backgroundColor = 'silver';
   }
   else
   {
-    div.style.backgroundColor = 'white';
+    mail_div.style.backgroundColor = 'white';
   }
 }
 
@@ -143,10 +125,14 @@ function show_email(email)
   mail.style.display = 'block';
   document.querySelector('#emails-view').style.display = 'none';
   document.querySelector('#compose-view').style.display = 'none';
-  document.querySelector('#title').innerHTML = `<h2> Subject: ${email.subject}</h2>`;
-  document.querySelector('#sender').innerHTML = `<h3>${email.sender}</h3>`;
+  document.querySelector('#title').innerHTML = `<b> Subject: </b>${email.subject}`;
+  document.querySelector('#sender').innerHTML = `<b>From: </b>${email.sender}`;
+  document.querySelector('#receiver').innerHTML = `<b>To: </b>${email.recipients}`;
+  document.querySelector('#timestamp').innerHTML = `<b>Timestamp: </b>${email.timestamp}`;
+
   document.querySelector('#body').innerHTML = `${email.body}`;
-  document.querySelector('#reply').addEventListener('click', () => compose_email(email.sender, `Re: ${email.subject}`, `On ${email.timestamp}  ${email.sender} wrote: ${email.body}`));
+  document.querySelector('#reply').addEventListener('click', () => compose_email(email.sender, `Re: ${email.subject}`, `On ${email.timestamp}  ${email.sender} wrote: 
+  ${email.body}`));
   fetch(`/emails/${email.id}`, {
     method: 'PUT',
     body: JSON.stringify({
@@ -156,27 +142,15 @@ function show_email(email)
 
 }
 
-//Function to archive
-async function archive(email){
-  const response = await fetch(`/emails/${email.id}`, {
+//Function to  change status
+function change_status(email,status){
+    fetch(`/emails/${email}`, {
     method: 'PUT',
     body: JSON.stringify({
-        archived: true
-
+        archived: !status
     })
   })
-  load_mailbox("inbox");
-}
-
-//Function to disarchive
-async function disarchive(email){
-  const response = await fetch(`/emails/${email.id}`, {
-    method: 'PUT',
-    body: JSON.stringify({
-        archived: false
-    })
-  })
-  load_mailbox("inbox");
+  .then(window.location.reload())
 }
 
 
