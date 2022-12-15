@@ -59,9 +59,9 @@ function get_emails(mail,mailbox){
   //adding this div to div containing all the e-mails
   document.querySelector('#emails-view').appendChild(mail_div);
   //adding class so that we will have a border
-  mail_div.setAttribute('class', 'border row'); 
+  mail_div.setAttribute('class', 'border-top border-bottom row p-2 h6 m-0'); 
   //setting the text
-  mail_div.innerHTML = `<div class="col-3"><b>${mail.sender}</b></div>  <div class="col-5">${mail.subject}</div>  <div class = "col-3">${mail.timestamp}</div> <div id="for_button${mail.id}" class = "col-1"></div>`;
+  mail_div.innerHTML = `<div class="col-3 ">${mail.sender}</div>  <div class="col-5">${mail.subject}</div>  <div class = "col-3">${mail.timestamp}</div> <div id="for_button${mail.id}" class = "col-1"></div>`;
   //creating button to atrchive
   let archive_button = document.createElement("button");
   //setting attributes to button
@@ -109,11 +109,13 @@ function get_emails(mail,mailbox){
   });
   if (mail.read == true)
   {
-    mail_div.style.backgroundColor = 'silver';
+    mail_div.classList.remove('h6');
+    mail_div.classList.add('bg-light');
   }
   else
   {
-    mail_div.style.backgroundColor = 'white';
+    mail_div.classList.add('h6');
+    mail_div.classList.remove('bg-light');
   }
 }
 

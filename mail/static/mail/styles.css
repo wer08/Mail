@@ -19,3 +19,10 @@ textarea {
 #reply_div{
     padding-top: 10px;
 }
+
+body{
+    background-color: ghostwhite;
+}
+.view{
+    background-color: white;
+}
